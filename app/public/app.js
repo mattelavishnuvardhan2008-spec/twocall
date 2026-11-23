@@ -14,7 +14,17 @@
 
   const ICE = {
     iceServers: [
-      { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }
+      { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+      {
+        urls: "turn:openrelay.metered.ca:80",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject"
+      }
     ]
   };
 
@@ -28,9 +38,24 @@
     if (!cfg.server || !cfg.me) { setStatus('Open ⚙ to set server + name'); return; }
     try { ws = new WebSocket(cfg.server); } catch { return setStatus('Bad server URL', 'err'); }
 
-    ws.onopen  = () => wsSend({ type: 'register', user: cfg.me, secret: cfg.secret });
+    ws.onopen = () => {
+      wsSend({ type: 'register', user: cfg.me, secret: cfg.secret });
+      
+      // Keep-alive ping every 2 minutes to prevent Render from sleeping
+      if (window.keepAliveInterval) clearInterval(window.keepAliveInterval);
+      window.keepAliveInterval = setInterval(() => {
+        if (ws && ws.readyState === 1) {
+          wsSend({ type: 'ping' }); 
+        }
+      }, 2 * 60 * 1000);
+    };
+    
     ws.onmessage = e => { try { handle(JSON.parse(e.data)); } catch {} };
-    ws.onclose = () => { if (!inCall) setStatus('Reconnecting…', 'warn'); setTimeout(connect, 2500); };
+    ws.onclose = () => { 
+      if (window.keepAliveInterval) clearInterval(window.keepAliveInterval);
+      if (!inCall) setStatus('Reconnecting…', 'warn'); 
+      setTimeout(connect, 2500); 
+    };
   }
 
   async function handle(m) {
@@ -92,7 +117,14 @@
     remoteStream = new MediaStream();
     remoteVideo.srcObject = remoteStream;
 
-    pc.ontrack = e => { remoteStream.addTrack(e.track); remoteVideo.play().catch(() => {}); };
+    // Force autoplay and unmute
+    pc.ontrack = e => { 
+      remoteStream.addTrack(e.track); 
+      remoteVideo.muted = false;
+      remoteVideo.volume = 1.0;
+      remoteVideo.play().catch(e => console.log("Play blocked", e)); 
+    };
+    
     pc.onicecandidate = e => { if (e.candidate) wsSend({ type: 'ice', to: peerId, candidate: e.candidate }); };
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'failed') { setStatus('Connection failed', 'err'); setTimeout(() => endCall(true), 800); }

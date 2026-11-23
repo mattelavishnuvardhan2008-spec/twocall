@@ -37,6 +37,12 @@ wss.on('connection', (ws) => {
     }
     if (!ws.userId) return;
 
+    // --- NEW: Handle the keep-alive ping from the app ---
+    if (m.type === 'ping') {
+      send(ws, { type: 'pong' });
+      return;
+    }
+
     if (m.type === 'call') {
       pending.set(m.to, ws.userId);
       toUser(m.to, { type: 'call', from: ws.userId });
