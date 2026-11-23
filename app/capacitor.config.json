@@ -1,0 +1,7 @@
+{
+  "appId": "com.example.twocall",
+  "appName": "TwoCall",
+  "webDir": "public",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": true }
+}

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>TwoCall</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <video id="remote" autoplay playsinline></video>
+  <video id="local" autoplay playsinline muted></video>
+
+  <div id="topbar"><span id="status">Starting…</span></div>
+
+  <div id="controls">
+    <button id="callBtn" class="round primary" aria-label="Call">📞</button>
+    <button id="switchBtn" class="round" aria-label="Flip camera">🔄</button>
+    <button id="hangBtn" class="round danger" aria-label="End">✖</button>
+    <button id="settingsBtn" class="round" aria-label="Settings">⚙</button>
+  </div>
+
+  <div id="settings" class="hidden">
+    <h2>Settings</h2>
+    <label>Server (wss://…/ws)<input id="sServer" placeholder="wss://your-app.onrender.com/ws"></label>
+    <label>My name<input id="sMe" placeholder="alice"></label>
+    <label>Friend's name<input id="sPeer" placeholder="bob"></label>
+    <label>Shared secret<input id="sSecret" type="password"></label>
+    <div class="row">
+      <button id="saveBtn" class="btn primary">Save</button>
+      <button id="closeBtn" class="btn">Close</button>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
